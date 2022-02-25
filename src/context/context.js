@@ -34,16 +34,25 @@ const GithubProvider = ({ children }) => {
 
   const searchGithubUser = async (user) => {
     toggleError()
-    // setLoading
+    setIsLoading(true)
     const response = await axios(`${rootUrl}/users/${user}`).catch((err) => {
       console.log(err)
     })
     console.log(response)
     if (response) {
       setGithubUser(response.data)
+      const { login, followers_url } = response.data
+      axios(`${rootUrl}/users/${login}/repos?per_page=100`).then((response) => {
+        setGithubRepos(response.data)
+      })
+      axios(`${followers_url}?per_page=100`).then((response) => {
+        setGithubFollowers(response.data)
+      })
     } else {
       toggleError(true, 'there is no user with that username')
     }
+    checkRequests()
+    setIsLoading(false)
   }
 
   function toggleError(show = false, msg = '') {
@@ -65,6 +74,7 @@ const GithubProvider = ({ children }) => {
         request,
         error,
         searchGithubUser,
+        isLoading,
       }}
     >
       {children}
